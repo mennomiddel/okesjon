@@ -12,7 +12,8 @@ var start = function(portnumber){
 	var mysql_connection = mysql.createConnection({
 	  host     : 'localhost',
 	  user     : 'root',
-	  password : ''
+	  password : '',
+	  database : 'gaspedaal2'
 	});
 
 	mysql_connection.connect();
@@ -36,14 +37,33 @@ var start = function(portnumber){
 	
 	app.use(express.bodyParser());
 
-	app.get('/next', function(request, response){
-		var query = 'select nr as id, concat(merk, \' \', model, \' \', uitvoering) as title from occimport where nr > 1 limit 1;'
-		mysql_connection.query(query, function(err, rows, fields) {
-			//nothing
-			
-		});
-	})
+	var jsonize = function(rows, tablename){
+		var result = "{";
+		result += "\"" + tablename +  "\": ";
+		result += JSON.stringify(rows);
+		result += "}";
+		return result;
+		
+	}
 	
+	app.get('/next', function(request, response){
+		var lastId = 1;
+		if (request.session.lastId != null){
+			lastId = request.session.lastId;
+			
+		}
+		console.log('lastId = ' + lastId);
+		var query = 'select nr as id, concat(merk, \' \', model, \' \', uitvoering) as title from occimport where nr > ' + lastId + ' limit 1;'
+		console.log('query = ' + query);
+		mysql_connection.query(query, function(err, rows, fields) {
+			request.session.lastId = rows[0].id;
+			console.log(rows);
+			response.send(jsonize(rows, 'cars'));
+		});
+		
+		
+	})
+
 	//the main template matching
 	var mainroute = function(request, response){ // get the url and slug info
 		var page = fs.readFileSync("static/index.html", "utf8"); // bring in the HTML file
