@@ -1,0 +1,28 @@
+<div>
+{{#user.loggedIn}}
+  you are logged in as {{user.username}} - <a href="/logout">logout</a>
+{{/user.loggedIn}}
+{{^user.loggedIn}}
+<div class="loginbox" >
+<form  id="login_form" action="/login" method="post" >
+<div class="label">username:</div><input name="username" type="text"/>
+<div class="label">password</div><input name="password" type="password"/>
+<input type="hidden" id="location" name="location" value=""/>
+<div class="submit"><input type="submit" value="log in"></div>
+</form>
+<script>
+$('#login_form').on('keyup', function(event){
+	if(event.which == 13){
+		 $(this).submit();		
+	}
+});
+$('#login_form').on('submit', function(event){
+	console.log("setting location to " + window.location);
+	$("#location").val(window.location);
+	//TODO: ajax the shit out of this.
+	return true;
+});
+</script>
+</div>
+{{/user.loggedIn}}
+</div>
