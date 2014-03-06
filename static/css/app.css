@@ -1,0 +1,43 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Helvetica Neue"; }
+
+header {
+  background-image: url("http://www.gaspedaal.nl/images/logo/gaspedaal.gif");
+  background-repeat: no-repeat;
+  background-size: auto 44px;
+  background-position: 50%;
+  height: 44px;
+  background-color: #f6f6f6;
+  border-bottom: 1px solid #ccc; }
+
+#main-container {
+  background-image: -webkit-linear-gradient(top, #4286f5, #194fdb);
+  background-size: 100% 90px;
+  background-repeat: no-repeat; }
+
+.item .title {
+  color: #FF8200;
+  font-size: 1.4em;
+  padding: 0 10px;
+  font-family: 'HelveticaNeue';
+  margin: 10px 0; }
+.item .image {
+  width: 94%;
+  padding: 10px 3%; }
+.item .data {
+  color: #FF8200;
+  padding: 0 10px; }
+  .item .data span {
+    width: 33.33%;
+    float: left;
+    font-family: 'HelveticaNeue-Thin'; }
+
+#vote {
+  padding: 40px 10px;
+  overflow: hidden; }
+  #vote img {
+    width: 40%;
+    padding: 0 5%;
+    float: left; }
