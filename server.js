@@ -183,26 +183,31 @@ var start = function(portnumber){
 	
 	app.get('/favorites', function(request, response){
 		console.log(request.session.likes);
-		var query = 'select nr as id, concat(merk, \' \', model, \' \', uitvoering) as title, fotoklein as photo_url, bouwjaar as build_year, plaats as city, kilometerstand as mileage, prijs as price, lat as latitude, lng as longitude, url as deeplink from occimport'
-			+ ' where nr in (' + request.session.likes.join() + ')'
-			+ ';'
-		console.log(query);
-		mysql_connection.query(query, function(err, rows, fields) {
-			for( key in rows){
-				if(typeof request.session.latitude !== 'undefined' && typeof request.session.longitude !== 'undefined' && typeof rows[0].latitude !== 'undefined' && typeof rows[0].longitude !== 'undefined'){
-					var distance = calcDistance(request.session.latitude, request.session.longitude, rows[0].latitude, rows[0].longitude);
-					if(distance != null){
-						rows[key].distance = distance;
+		if(typeof request.session.likes !== 'undefined'){
+			var query = 'select nr as id, concat(merk, \' \', model, \' \', uitvoering) as title, fotoklein as photo_url, bouwjaar as build_year, plaats as city, kilometerstand as mileage, prijs as price, lat as latitude, lng as longitude, url as deeplink from occimport'
+				+ ' where nr in (' + request.session.likes.join() + ')'
+				+ ';'
+			console.log(query);
+			mysql_connection.query(query, function(err, rows, fields) {
+				for( key in rows){
+					if(typeof request.session.latitude !== 'undefined' && typeof request.session.longitude !== 'undefined' && typeof rows[0].latitude !== 'undefined' && typeof rows[0].longitude !== 'undefined'){
+						var distance = calcDistance(request.session.latitude, request.session.longitude, rows[0].latitude, rows[0].longitude);
+						if(distance != null){
+							rows[key].distance = distance;
+						}else{
+							rows[key].distance = "";
+						}
 					}else{
 						rows[key].distance = "";
 					}
-				}else{
-					rows[key].distance = "";
 				}
-			}
-			console.log(rows);
-			response.send(jsonize(rows, 'cars', request));
-		});		
+				console.log(rows);
+				response.send(jsonize(rows, 'cars', request));
+			});
+		}else{
+			response.send(jsonize([], 'cars', request));
+		}
+		
 	});
 
 	//the main template matching
