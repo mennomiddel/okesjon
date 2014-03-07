@@ -4,7 +4,7 @@
 
 	var T = {
 		article: "<article class='item' data-id='{{id}}'><img class='image' src='{{photo_url}}'><p class='title'>{{title}}</p><div class='data'><span>{{price}}</span><span class='mileage'>{{mileage}} Km</span><span class='build-year'>{{build_year}}</span></div></article>",
-		favorites: "{{#favorites}}<article class='fav-item'><img src='{{photo_url}}'><div class='data'><p class='title'>{{title}}</p><span class='price'>{{price}}</span></div></article>"
+		favorites: "{{#favorites}}<article class='fav-item'><img src='{{photo_url}}'><div class='data'><p class='title'>{{title}}</p><span class='price'>{{price}}</span></div></article>{{/favorites}}"
 	};
 
 	var M = {
