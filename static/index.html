@@ -4,15 +4,25 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<link rel="stylesheet" href="css/app.css">
+		<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600' rel='stylesheet' type='text/css'>
 	</head>
 
 	<body>
-		<header></header>
-		<section id="main-container"></section>
-		<section id="vote">
-			<img src="img/vote-like.png" data-vote="fav">
-			<img src="img/vote-dislike.png" data-vote="rm">
+		<header>
+			<span class="header-button menu" data-opt="menu">&#9776;</span>
+			<span class="header-button favorites" data-opt="fav">&#9733;</span>
+		</header>
+		<section class="view view-login"></section>
+		<section class="view view-menu"></section>
+		<section class="view view-main view-in">
+			<section id="main-container"></section>
+			<section class="vote-result"></section>
+			<section id="vote">
+				<img class="btn-vote" src="img/vote-like.png" data-vote="fav">
+				<img class="btn-vote" src="img/vote-dislike.png" data-vote="rm">
+			</section>
 		</section>
+		<section class="view view-favorites"></section>
 		<script src="js/zepto.js"></script>
 		<script src="js/mustache.js"></script>
 		<script src="js/app.js"></script>
