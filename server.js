@@ -1,21 +1,17 @@
 var start = function(portnumber){
 	
-
-	
-	
 	var express = require('express'); 
 	var fs = require('fs'); 
 	var mustache = require('mustache');
 	var RedisStore = require('connect-redis')(express);
 	var redisClient = require("redis").createClient();
-	var mysql      = require('mysql');
+	var mysql = require('mysql');
+	
+	var Config = require('./config.js');
+	var config = new Config();
+	var Position = require('./position.js');
 
-	var mysql_connection = mysql.createConnection({
-	  host     : 'localhost',
-	  user     : 'root',
-	  password : '',
-	  database : 'gaspedaal2'
-	});
+	var mysql_connection = mysql.createConnection(config.mysqlconfig);
 
 	mysql_connection.connect();
 
@@ -26,8 +22,6 @@ var start = function(portnumber){
 	var app = express();
 	
 	var sslportnumber = portnumber + 363;	
-	
-	
 	
 	//set up session	
 	app.use(express.cookieParser());
@@ -47,33 +41,26 @@ var start = function(portnumber){
 		
 	};
 	
-	var calcDistance = function(lat1, lon1, lat2, lon2) {
-	    //Radius of the earth in:  1.609344 miles,  6371 km  | var R = (6371 / 1.609344);
-	    console.log("latitude1 = " + lat1);
-	    console.log("latitude2 = " + lat2);
-	    console.log("longitude1 = " + lon1);
-	    console.log("longitude2 = " + lon2);
-		
-		var R = 3958.7558657440545; // Radius of earth in Miles 
-	    var dLat = toRad(lat2-lat1);
-	    var dLon = toRad(lon2-lon1);
-	    
-	    console.log("dLat = " + dLat);
-	    console.log("dLon = " + dLon);
-	    
-	    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-	            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * 
-	            Math.sin(dLon/2) * Math.sin(dLon/2); 
-	    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-	    var d = R * c;
-	    console.log("distance = " + d);
-	    return d;
-	}
+	var calcDistance = function(position1,position2) {
+		var lat1 = position1.latitude;
+		var lat2 = position2.latitude;
+		var lon1 = position1.longitude;
+		var lon2 = position2.longitude;
+		console.log();
+		var R = 6371; // km (change this constant to get miles)
+		var dLat = (lat2-lat1) * Math.PI / 180;
+		var dLon = (lon2-lon1) * Math.PI / 180;
+		var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+			Math.cos(lat1 * Math.PI / 180 ) * Math.cos(lat2 * Math.PI / 180 ) *
+			Math.sin(dLon/2) * Math.sin(dLon/2);
+		var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+		var d = R * c;
+		if (d>1) return Math.round(d)+"km";
+		else if (d<=1) return Math.round(d*1000)+"m";
+		return d;
+	};
 
-	var toRad = function(Value) {
-	    /** Converts numeric degrees to radians */
-	    return Value * Math.PI / 180;
-	}
+
 	
 	var dynamicCallbackName = function(json, request){
 		var callbackname = "";
@@ -91,12 +78,57 @@ var start = function(portnumber){
 	
 	app.post('/location', function(request, response){
 		if(typeof request.body.latitude !== 'undefined' && typeof request.body.longitude !== 'undefined'){
-			request.session.latitude = request.body.latitude;
-			request.session.longitude = request.body.longitude;
-			response.send(dynamicCallbackName("{\"status\" : \"ok\"}", response))
+			request.session.position = new Position (request.body.latitude, request.body.longitude);
+			response.send(dynamicCallbackName("{\"status\" : \"ok\"}", response));
 		}else{
 			response.send(dynamicCallbackName("{\"status\" : \"error\"}", response));
 		}
+	});
+	
+	app.get('/location', function(request, response){
+		var position = new Position("","");
+		if(typeof request.session.position !== 'undefined'){
+			position = request.session.position;
+		}
+		console.log(position);
+		console.log(JSON.stringify(position));
+		response.send( dynamicCallbackName(JSON.stringify(position), request));
+		
+	});
+	
+	var reset = function(request, response){
+		request.session.lastId = 0;
+		response.send(dynamicCallbackName("{\"success\" : \"ok\"}", response));
+	};
+	
+	app.get('/reset', reset);
+	
+	app.post('/reset', reset);
+	
+	var remove
+	
+	app.post('/favorites/delete', function(request, response){
+		var status = new Object();
+		if(typeof request.body.id !== 'undefined' ){
+			console.log(request.session.likes);
+			var index = request.session.likes.indexOf(parseInt(request.body.id));
+			console.log(index);
+			if(index > 0){
+				request.session.likes.splice(index,1);
+				status.newfavorites = request.session.likes;
+				status.status = "ok";
+			}else{
+				status.status = "error";
+				status.message = "car with id " + request.body.id + " was not favorited..."
+				response.status(500);
+			}
+			response.send(dynamicCallbackName(JSON.stringify(status), response));
+		}else{
+			status.status = "error";
+			status.message = "you should provide an id";
+			response.status(500);
+		}
+		response.send(dynamicCallbackName(JSON.stringify(status), response));
 	});
 	
 	app.post('/name', function(request, response){
@@ -106,7 +138,7 @@ var start = function(portnumber){
 	});
 	
 	app.get('/name', function(request, response){
-		if (typeof request.session.username == 'undevined'){
+		if (typeof request.session.username === 'undefined'){
 			response.send(dynamicCallbackName("{\"status\" : \"error\"}", response));
 		}else{
 			response.send(dynamicCallbackName("{\"username\" : \"" +  + "\"}", response));
@@ -139,10 +171,38 @@ var start = function(portnumber){
 	
 	app.get('/next', next);
 	
-	app.post('/favorite', function(request, response){
-		var favorite_id = request.body.id;
-		console.log(favorite_id);
+	app.get('/like', function(request, response){
+		if (typeof request.session.likes === 'undefined'){
+			request.session.likes = new Array();
+		}
+		console.log(request.session.lastId);
+		request.session.likes.push(request.session.lastId);
 		next(request, response);
+	});
+	
+	
+	app.get('/favorites', function(request, response){
+		console.log(request.session.likes);
+		var query = 'select nr as id, concat(merk, \' \', model, \' \', uitvoering) as title, fotoklein as photo_url, bouwjaar as build_year, plaats as city, kilometerstand as mileage, prijs as price, lat as latitude, lng as longitude, url as deeplink from occimport'
+			+ ' where nr in (' + request.session.likes.join() + ')'
+			+ ';'
+		console.log(query);
+		mysql_connection.query(query, function(err, rows, fields) {
+			for( key in rows){
+				if(typeof request.session.latitude !== 'undefined' && typeof request.session.longitude !== 'undefined' && typeof rows[0].latitude !== 'undefined' && typeof rows[0].longitude !== 'undefined'){
+					var distance = calcDistance(request.session.latitude, request.session.longitude, rows[0].latitude, rows[0].longitude);
+					if(distance != null){
+						rows[key].distance = distance;
+					}else{
+						rows[key].distance = "";
+					}
+				}else{
+					rows[key].distance = "";
+				}
+			}
+			console.log(rows);
+			response.send(jsonize(rows, 'cars', request));
+		});		
 	});
 
 	//the main template matching
@@ -151,6 +211,13 @@ var start = function(portnumber){
 		
 		response.send(page); // send to client
 	};
+	
+	process.on('SIGTERM', function () {
+	  console.log("Closing");
+	  redisClient.quit();
+	  sql_connection.close();
+	  app.close();
+	});
 	
 	app.get('/app/:slug', mainroute);
 	app.get('/', mainroute);
