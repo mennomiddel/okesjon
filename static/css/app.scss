@@ -1,7 +1,16 @@
+$red: red;
+$green: green;
+
 body {
+	position: relative;
 	margin: 0;
 	padding: 0;
-	font-family: "Helvetica Neue";
+	font-family: 'Open Sans', "HelveticaNeue", sans-serif;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
 }
 
 header {
@@ -12,12 +21,57 @@ header {
 	height: 44px; 
 	background-color: #f6f6f6;
 	border-bottom: 1px solid #ccc;
+	top: 0;
+    width: 100%;
+    position: fixed;
+    z-index: 2;
+
+    .header-button {
+    	display: inline-block;
+    	height: 100%;
+    	width: 44px;
+		color: #999;
+		font-size: 2em;
+
+    	&.menu {
+			padding-left: 3%;
+    	}
+
+    	&.favorites {
+    		float: right;
+    	}
+    }
 }
 
-#main-container {
-    background-image: -webkit-linear-gradient(top, #4286F5, #194FDB);
+.view {
+	overflow-y: auto;
+	-webkit-transition-duration: 350ms;
+	position: absolute;
+    width: 100%;
+    top: 44px; bottom: 0; left: 0; right: 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.view-in {
+	-webkit-transform: translateX(0%) !important;
+}
+
+.view-menu {
+	-webkit-transform: translateX(-100%);
+}
+
+.view-favorites {
+	-webkit-transform: translateX(100%);
+	height: 400px;
+	width: 100%;
+	background-color: black;
+}
+
+.view-main {
+	-webkit-transform: translateX(100%);
     background-size: 100% 90px;
 	background-repeat: no-repeat;
+    background-image: -webkit-linear-gradient(top, #4286F5, #194FDB);
 }
 
 .item {
@@ -26,7 +80,6 @@ header {
 		color: #FF8200;
 		font-size: 1.4em;
 		padding: 0 10px;
-		font-family: 'HelveticaNeue';
 		margin: 10px 0;
 	}
 
@@ -42,7 +95,14 @@ header {
 		span {
 			width: 33.33%;
 			float: left;
-			font-family: 'HelveticaNeue-Thin';
+		}
+
+		.mileage {
+			text-align: center;
+		}
+
+		.build-year {
+			text-align: right;
 		}
 	}
 }
@@ -56,4 +116,88 @@ header {
 		padding: 0 5%;
 		float: left;
 	}
+}
+
+.vote-section {
+	width: 100%;
+	height: 200px;
+
+	&.fav {
+		background-color: green;
+	}
+
+	&.rm {
+		background-color: red;
+	}
+}
+
+.vote-result {
+	position: absolute;
+	top: 10px;
+	background-color: black;
+	height: 225px;
+	margin: 0 3%;
+	width: 94%;
+	z-index: -1;
+	color: #e5e5e5;
+
+	&.fav {
+		background-color: $green;
+		&:after {
+			content: "\2665";
+			font-size: 5em;
+			position: relative;
+			left: 38%;
+			top: 20%;
+		}
+	}
+
+	&.rm {
+		background-color: $red;
+		&:after {
+			content: "\2297";
+			font-size: 5em;
+			position: relative;
+			left: 38%;
+			top: 20%;
+		}
+	}
+}
+
+/* Animations */
+
+@-webkit-keyframes slideLeft {
+	from {
+        -webkit-transform: translateX(0%);
+        opacity: 1;
+    }
+
+    to {
+        -webkit-transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.slide-left {
+    -webkit-animation-duration: 500ms;
+    -webkit-animation-name: slideLeft;
+    -webkit-animation-fill-mode: both;
+}
+
+@-webkit-keyframes slideRight {
+	from {
+        -webkit-transform: translateX(0%);
+        opacity: 1;
+    }
+
+    to {
+        -webkit-transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+.slide-right {
+    -webkit-animation-duration: 500ms;
+    -webkit-animation-name: slideRight;
+    -webkit-animation-fill-mode: both;
 }
